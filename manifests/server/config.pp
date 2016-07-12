@@ -21,7 +21,7 @@ class cvmfs::server::config (
       options => 'rw,noatime,hard,nfsvers=3',
       atboot  => true,
       require => [File['/srv/cvmfs'],Service['nfslock']],
-      before  => [Exec['cvmfs_mkfs'],User[$user]]
+      #      before  => [Exec['cvmfs_mkfs'],User[$user]]
     }
   }
   file{'/srv/cvmfs':
@@ -54,11 +54,11 @@ class cvmfs::server::config (
   limits::entry{'shared-soft': type => 'soft', item => 'nofile', value => $nofiles,  domain => 'shared'}
   limits::entry{'shared-hard': type => 'hard', item => 'nofile', value => $nofiles,  domain => 'shared'}
 
-  exec{'cvmfs_mkfs':
-    command => "/usr/bin/cvmfs_server mkfs -o ${user} ${repo}",
-    creates => "/etc/cvmfs/repositories.d/${repo}",
-    require => [User[$user],Package[kernel],Service['httpd']],
-  }
+  #  exec{'cvmfs_mkfs':
+  #  command => "/usr/bin/cvmfs_server mkfs -o ${user} ${repo}",
+  #  creates => "/etc/cvmfs/repositories.d/${repo}",
+  #  require => [User[$user],Package[kernel],Service['httpd']],
+  #}
 
   #service{'httpd':
   #  ensure  => running,
@@ -72,17 +72,17 @@ class cvmfs::server::config (
     incl    => '/etc/sysconfig/selinux',
     lens    => 'Shellvars.lns',
     changes => 'set SELINUX disabled',
-    before  => Exec['cvmfs_mkfs']
+    #before  => Exec['cvmfs_mkfs']
   } ~>
   exec {'/bin/echo 0 > /selinux/enforce': #apply the change immediately
     refreshonly => true,
-    before      => Exec['cvmfs_mkfs']
+    #    before      => Exec['cvmfs_mkfs']
   }
   # Disable requiretty in sudoers since puppet runs mkfs with out a tty.
   augeas{'disable_requiretty':
     context => '/files/etc/sudoers',
     changes => 'set Defaults[*]/requiretty/negate ""',
-    before  => Exec['cvmfs_mkfs']
+    #    before  => Exec['cvmfs_mkfs']
   }
   #firewall{'100 - allow access from 80':
   #  proto   => 'tcp',
